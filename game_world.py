@@ -15,6 +15,7 @@ class GameWorldTyle(tk_world.TkWorldTyle):
         super(GameWorldTyle, self).__init__(world, canvas, x, y, symb=symb)
         self.coating_func = None
         self.points_left = 0 # here we store how many points (of movement, for example) left. [for last action of any type]
+        self.a_value = 0 # here we store some number, that has to be stored by outer funcs (spawning unit index)
 
     def clicked(self, tk_event):
         self.world.clicked(event.Event(tk_event, event.TYLE_CLICKED, tyle=self))
@@ -22,6 +23,20 @@ class GameWorldTyle(tk_world.TkWorldTyle):
     def update(self, **kwargs):
         super(GameWorldTyle, self).update(kwargs)
         self.passability = LANDSHAFT_PASSABILITY[self.symb]
+
+    def is_full(self):
+        if self.creature or self.building:
+            return True
+        else:
+            return False
+
+    def get_team(self):
+        if self.creature:
+            return self.creature.team
+        elif self.building:
+            return self.building.team
+        else:
+            return -1
 
 class GameWorld(tk_world.TkWorld):
     def __init__(self,

@@ -13,10 +13,11 @@ Speed - every [speed] actions you can make a turn
 
 
 class Atributes():
-    def __init__(self, hp, mp, attack, defence, hardness, speed):
+    def __init__(self, hp, mp, attack, defence, hardness, speed, cost):
         self.hp = hp
         self.mp = mp
         self. attack = attack
         self.defence = defence
         self.hardness = hardness
         self.speed = speed
+        self.cost = cost

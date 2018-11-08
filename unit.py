@@ -5,10 +5,9 @@
 import atributes as atrs
 import info_window
 import textures
-from random import randint, choice
-from time import sleep
 
 from collections import deque
+import copy
 
 
 TYPE_CREATURE = 101
@@ -19,7 +18,11 @@ STANDART_MOVE_MAP = [[0, 1], [1, 0], [-1, 0], [0, -1]]
 
 
 class Unit():
-    def __init__(self, world, x, y, type, name, char, atributes, team=-1, owner=None, texture=None, move_map=None, flag=None):
+    def __init__(self, world, x, y, 
+                 type, name, char, atributes,
+                 team=-1, owner=None, 
+                 texture=None, flag=None, 
+                 move_map=None):
         self.world = world
         self.x = x
         self.y = y
@@ -35,7 +38,6 @@ class Unit():
         if move_map is None:
             move_map = STANDART_MOVE_MAP
         self.move_map = move_map
-        print(move_map)
 
         self.visible = True
         self.info_window = None
@@ -43,7 +45,18 @@ class Unit():
         self.last_filling_distance = 0
         self.move_points = self.atributes.speed
 
-    def delete(self):
+    def copy(self):
+        unit = type(self)(self.world, self.x, self.y, 
+                    self.type, self.name, self.char, self.atributes,
+                    self.team, self.owner, 
+                    self.texture, self.flag, 
+                    self.move_map)
+        for key in self.__dict__:
+            unit.__dict__[key] = self.__dict__[key]
+
+        return unit
+
+    def delete(self, *trash):
         tyle = self.world.map[self.x][self.y]
         tyle.delete_texture_by_name(self.name + '_texture')
         tyle.delete_texture_by_name(self.name + '_flag')
@@ -54,20 +67,24 @@ class Unit():
         self.world.map[self.x][self.y].add_texture(self.texture, self.name + '_texture')
         self.world.map[self.x][self.y].add_texture(self.flag, self.name + '_flag')
 
-    def fill_zone(self, distance, coating_func, cur_x=None, cur_y=None, moveable_only=False, texture=None):
-        if cur_x is None or cur_y is None:
+    def fill_zone(self, distance, 
+                  coating_func, coating_value=-1,
+                  init_x=None, init_y=None,
+                  moveable_only=False, flying=False,
+                  texture=None):
+        if init_x is None or init_y is None:
             self.last_filling_distance = distance
-            cur_x = self.x
-            cur_y = self.y
+            init_x = self.x
+            init_y = self.y
 
-        tyle = self.world.map[cur_x][cur_y]
-        if moveable_only:
+        tyle = self.world.map[init_x][init_y]
+        if moveable_only and not flying:
             distance += tyle.passability
         else:
             distance += 1
 
         q = deque()
-        q.append([cur_x, cur_y, distance])
+        q.append([init_x, init_y, distance])
         while q:
             cur_x, cur_y, dist = q.popleft()
             if not self.world.check_coords(cur_x, cur_y):
@@ -75,7 +92,11 @@ class Unit():
             tyle = self.world.map[cur_x][cur_y]
 
             new_dist = dist
-            if moveable_only:
+            if moveable_only and not flying:
+                if tyle.is_full():
+                    team = tyle.get_team()
+                    if (self.team == -1 and team != -1) or (self.team != team and team != -1):
+                        continue
                 new_dist -= tyle.passability
             else:
                 new_dist -= 1
@@ -87,10 +108,12 @@ class Unit():
             if moveable_only and tyle.passability == -1:
                 continue
 
-            tyle.coating_func = coating_func
-            tyle.points_left = new_dist
-            if texture:
-                tyle.add_texture(texture, texture_name=str(self) + '_filled')
+            if not (moveable_only and tyle.is_full()):
+                tyle.coating_func = coating_func
+                tyle.a_value = coating_value
+                tyle.points_left = new_dist
+                if texture:
+                    tyle.add_texture(texture, texture_name=str(self) + '_filled')
 
             for shift in self.move_map:
                 new_x = cur_x + shift[0]
@@ -137,9 +160,12 @@ class Unit():
         if end_of_turn:
             self.move_points = self.atributes.speed
 
+    def clicked(self, event):
+        pass # make your own
+
 
 class Creature(Unit):
-    def prepare_move(self):
+    def prepare_move(self, *trash):
         self.fill_zone(self.move_points, self.move, moveable_only=True, texture=textures.chosen_corner_blue)
 
     def move(self, tyle):
@@ -163,18 +189,83 @@ class Creature(Unit):
 
             buttons = ['Delete', 'Move', 'End Turn']
             commands = [self.delete, self.prepare_move, self.owner.world.engine.end_turn]
-            self.info_window = info_window.InfoWindow(buttons, commands)
-            self.info_window.activate()    
+            self.info_window = info_window.InfoWindow(buttons, commands, [None for i in range(3)])
+            self.info_window.activate()   
 
 
 class Building(Unit):
+    def __init__(self, world, x, y, 
+                 type, name, char, atributes, 
+                 team=-1, owner=None, 
+                 texture=None, flag=None, 
+                 move_map=None,
+                 produced_units=None, spawn_points=0, spawn_distance=1,
+                 produced_resourses=None):
+        super(Building, self).__init__(world, x, y,
+                                       type, name, char, atributes,
+                                       team, owner,
+                                       texture, flag,
+                                       move_map)
+        self.produced_units = produced_units
+        self.produced_resourses = produced_resourses
+        self.spawn_points = spawn_points
+
+    def prepare_spawn(self, unit_index):
+        self.fill_zone(1, self.spawn_creature, coating_value=unit_index, 
+                       moveable_only=True, flying=True,
+                       texture=textures.chosen_corner_golden)
+
+    def spawn_creature(self, tyle):
+        cr_index = tyle.a_value
+        cr = self.produced_units[cr_index].copy()
+        self.close_filling()
+
+        if cr.atributes.cost > self.spawn_points:
+            return
+        else:
+            cr.x = tyle.x
+            cr.y = tyle.y
+            spawn_cr(cr, self.owner)
+            self.spawn_points -= cr.atributes.cost
+
     def clicked(self, event):
-        
+        if event.tk_event.num == 1:
+            self.prepare_spawn(0)
+        else:
+            if self.info_window:
+                if self.info_window.active:
+                    return
 
+            buttons = ['Delete']
+            commands = [self.delete]
+            args = [[]]
+            for i in range(len(self.produced_units)):
+                buttons.append('Spawn ' + self.produced_units[i].name)
+                commands.append(self.prepare_spawn)
+                args.append(i)
+            self.info_window = info_window.InfoWindow(buttons, commands, args)
+            self.info_window.activate()
 
-def spawn_unit(world, x, y, type, name, char, atributes, team, owner, texture, flag):
-    unit = Building(world, x, y, type, name, char, atributes, team, owner, texture, STANDART_MOVE_MAP, flag)
+def spawn_creture(world, x, y, name, char, atributes, team, owner, texture, flag):
+    unit = Creature(world, x, y, TYPE_CREATURE, name, char, atributes, team, owner, texture, flag, STANDART_MOVE_MAP)
     owner.creatures.append(unit)
     tyle = unit.world.map[x][y]
     tyle.creature = unit
     unit.draw()
+
+
+def spawn_cr(cr, owner, world=None):
+    if world:
+        cr.world = world
+
+    owner.creatures.append(cr)
+    tyle = cr.world.map[cr.x][cr.y]
+    tyle.creature = cr
+    cr.draw()
+
+
+def spawn_bld(bld, owner):
+    owner.buildings.append(bld)
+    tyle = bld.world.map[bld.x][bld.y]
+    tyle.building = bld
+    bld.draw()

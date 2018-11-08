@@ -72,7 +72,7 @@ class GameEngine():
         if self.current_player is None:
             self.current_player = self.players[0]
 
-    def end_turn(self):
+    def end_turn(self, *trash):
         self.current_player.update(end_of_turn=True)
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
         self.current_player = self.players[self.current_player_index]
@@ -88,7 +88,7 @@ class GameEngine():
         if building:
             building.cancel_selection()
             self.cur_building_selected = None
-        if building:
+        if landshaft:
             landshaft.cancel_selection()
             self.cur_landshaft_selected = None
 
@@ -115,9 +115,20 @@ class GameEngine():
                 event.type = ev.LANDSHAFT_CLICKED
                 self.click_handler(event)
             else:
-                # testing unit
-                atrs = atributes.Atributes(10, 5, 5, 0, 0, 1)
-                unit.spawn_unit(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'cr', '@', atrs, -1, self.current_player, textures.castle, self.current_player.flag)
+                #testing unit
+                # atrs = atributes.Atributes(10, 5, 5, 0, 0, 4, 3)
+                # cr = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'cr', '@', atrs, self.current_player_index, self.current_player, textures.footman, self.current_player.flag)
+                # unit.spawn_cr(cr, self.current_player)
+
+                #testing buildings
+                atrs1 = atributes.Atributes(10, 5, 5, 0, 0, 4, 4)
+                atrs2 = atributes.Atributes(15, 7, 6, 0, 0, 2, 6)
+                cr1 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'Rider', '@', atrs1, self.current_player_index, self.current_player, textures.horseman, self.current_player.flag)
+                cr2 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'Knight', '@', atrs2, self.current_player_index, self.current_player, textures.footman, self.current_player.flag)
+                crs = [cr1, cr2]
+                bld = unit.Building(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'cr', '@', atrs1, self.current_player_index, self.current_player, textures.castle, self.current_player.flag,
+                                    produced_units=crs, spawn_points=10)
+                unit.spawn_bld(bld, self.current_player)
 
         elif event.type == ev.CREATURE_CLICKED:
             if self.cur_creature_selected:
@@ -131,6 +142,18 @@ class GameEngine():
                 else:
                     self.cur_creature_selected = cr
                     cr.clicked(event)
+        elif  event.type == ev.BUILDING_CLICKED:
+            if self.cur_building_selected:
+                bld = self.cur_building_selected
+                bld.close_selection()
+                self.cur_building_selected = None
+            else:
+                bld = event.building
+                if bld.owner != self.current_player:
+                    return
+                else:
+                    self.cur_building_selected = bld
+                    bld.clicked(event)
 
 
 def main():

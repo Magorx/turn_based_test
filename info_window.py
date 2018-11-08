@@ -7,7 +7,7 @@ import time
 
 
 class InfoWindow(object):
-    def __init__(self, choices, commands, imgs=[], side_px=50, button_height=2, button_width=10):
+    def __init__(self, choices, commands, args, imgs=[], side_px=50, button_height=2, button_width=10):
         if len(choices) != len(commands) or len(choices) < 1:
             raise IndexError
         if imgs and len(imgs) != len(choice):
@@ -15,6 +15,7 @@ class InfoWindow(object):
 
         self.choices = choices
         self.commands = commands
+        self.args = args
         self.imgs = imgs
         self.side_px = side_px
         self.button_height = button_height
@@ -39,7 +40,10 @@ class InfoWindow(object):
             canvas = tkinter.Canvas(window, width=side_px, height=side_px, bg='green')
             if self.imgs:
                 canvas.create_image(i * side_px, i * side_px, image=self.imgs[i])
-            button = tkinter.Button(canvas, text=str(self.choices[i]), command=self.commands[i], width=self.button_width, height=self.button_height)
+            button = tkinter.Button(canvas, 
+                                    text=str(self.choices[i]),
+                                    command=lambda i=i: self.commands[i](self.args[i]), # kostili v dele, inache nikak
+                                    width=self.button_width, height=self.button_height)
             button.pack()
             canvas.pack()
         self.window = window
@@ -48,7 +52,6 @@ class InfoWindow(object):
         self.active = False
         self.window.destroy()
         self.window = None
-        print('QUCH')
 
     def return_by_index(self, i):
         print('returned ', self.i)

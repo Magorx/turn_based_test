@@ -17,7 +17,10 @@ road =  load_texture_by_name('road')
 water =  load_texture_by_name('water')
 mountain =  load_texture_by_name('mountain')
 tree =  load_texture_by_name('tree')
-unit =  load_texture_by_name('unit')
+
+footman =  load_texture_by_name('footman')
+horseman =  load_texture_by_name('horseman')
+
 castle =  load_texture_by_name('castle')
 
 transparent =  load_texture_by_name('transparent')
@@ -36,7 +39,7 @@ TEXTURES = {
     'water' : water,
     'mountain' : mountain,
     'tree' : tree,
-    'unit' : unit,
+    'footman' : footman,
     'transparent' : transparent,
     'chosen_corner_red' : chosen_corner_red,
     'chosen_corner_blue' : chosen_corner_blue,
