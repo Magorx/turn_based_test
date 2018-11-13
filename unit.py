@@ -60,18 +60,23 @@ class Unit():
         tyle = self.world.map[self.x][self.y]
         tyle.delete_texture_by_name(self.name + '_texture')
         tyle.delete_texture_by_name(self.name + '_flag')
-        tyle.creature = None
-        self.close_filling()
+
+        if self.type == TYPE_CREATURE:
+            tyle.creature = None
+        elif self.type == TYPE_BUILDING:
+            tyle.building = None
+
+        self.close_filling_module(self.last_filling_distance)
 
     def draw(self):
         self.world.map[self.x][self.y].add_texture(self.texture, self.name + '_texture')
         self.world.map[self.x][self.y].add_texture(self.flag, self.name + '_flag')
 
-    def fill_zone(self, distance, 
-                  coating_func, coating_value=-1,
-                  init_x=None, init_y=None,
-                  moveable_only=False, flying=False,
-                  texture=None):
+    def fill_zone_bfs(self, distance, 
+                      coating_func, coating_value=-1,
+                      init_x=None, init_y=None,
+                      moveable_only=False, flying=False,
+                      texture=None):
         if init_x is None or init_y is None:
             self.last_filling_distance = distance
             init_x = self.x
@@ -120,7 +125,10 @@ class Unit():
                 new_y = cur_y + shift[1]
                 q.append([new_x, new_y, new_dist])
 
-    def close_filling(self, distance=0, cur_x=None, cur_y=None, moveable_only=False, texture_used=True):
+    def close_filling_bfs(self, distance=0, 
+                          cur_x=None, cur_y=None,
+                          moveable_only=False,
+                          texture_used=True):
         if cur_x is None or cur_y is None:
             cur_x = self.x
             cur_y = self.y
@@ -148,10 +156,50 @@ class Unit():
             new_x = cur_x + shift[0]
             new_y = cur_y + shift[1]
             if self.world.check_coords(new_x, new_y):
-                self.close_filling(new_distance, new_x, new_y, moveable_only)
+                self.close_filling_bfs(new_distance, new_x, new_y, moveable_only)
+
+    def fill_zone_module(self, distance, 
+                         coating_func, coating_value=-1,
+                         init_x=None, init_y=None,
+                         moveable_only=False, flying=False,
+                         texture=None):
+        if init_x is None or init_y is None:
+            self.last_filling_distance = distance
+            init_x = self.x
+            init_y = self.y
+
+        for cur_x in range(init_x - distance, init_x + distance + 1):
+            for cur_y in range(init_y - distance, init_y + distance + 1):
+                if not self.world.check_coords(cur_x, cur_y):
+                    continue
+                else:
+                    tyle = self.world.map[cur_x][cur_y]
+                    if not (moveable_only and tyle.is_full()):
+                        tyle.coating_func = coating_func
+                        tyle.a_value = coating_value
+                        if texture:
+                            tyle.add_texture(texture, texture_name=str(self) + '_filled')
+
+    def close_filling_module(self, distance=0, 
+                             init_x=None, init_y=None, texture_used=True):
+        if init_x is None or init_y is None or distance == 0:
+            distance = self.last_filling_distance
+            init_x = self.x
+            init_y = self.y
+            self.last_filling_distance = 0
+
+        for cur_x in range(init_x - distance, init_x + distance + 1):
+            for cur_y in range(init_y - distance, init_y + distance + 1):
+                if not self.world.check_coords(cur_x, cur_y):
+                    continue
+                else:
+                    tyle = self.world.map[cur_x][cur_y]
+                    tyle.coating_func = None
+                    if texture_used:
+                        tyle.delete_texture_by_name(str(self) + '_filled')
 
     def cancel_selection(self):
-        self.close_filling()
+        self.close_filling_module()
         if self.info_window:
             self.info_window.deactivate()
             self.info_window = None
@@ -159,6 +207,7 @@ class Unit():
     def update(self, end_of_turn=False):
         if end_of_turn:
             self.move_points = self.atributes.speed
+            self.spawn_points
 
     def clicked(self, event):
         pass # make your own
@@ -166,7 +215,7 @@ class Unit():
 
 class Creature(Unit):
     def prepare_move(self, *trash):
-        self.fill_zone(self.move_points, self.move, moveable_only=True, texture=textures.chosen_corner_blue)
+        self.fill_zone_bfs(self.move_points, self.move, moveable_only=True, texture=textures.chosen_corner_blue)
 
     def move(self, tyle):
         if tyle.creature:
@@ -211,14 +260,14 @@ class Building(Unit):
         self.spawn_points = spawn_points
 
     def prepare_spawn(self, unit_index):
-        self.fill_zone(1, self.spawn_creature, coating_value=unit_index, 
+        self.fill_zone_module(1, self.spawn_creature, coating_value=unit_index, 
                        moveable_only=True, flying=True,
                        texture=textures.chosen_corner_golden)
 
     def spawn_creature(self, tyle):
         cr_index = tyle.a_value
         cr = self.produced_units[cr_index].copy()
-        self.close_filling()
+        self.close_filling_module()
 
         if cr.atributes.cost > self.spawn_points:
             return
@@ -258,14 +307,19 @@ def spawn_cr(cr, owner, world=None):
     if world:
         cr.world = world
 
-    owner.creatures.append(cr)
+    owner.add_creature(cr)
     tyle = cr.world.map[cr.x][cr.y]
     tyle.creature = cr
     cr.draw()
 
 
 def spawn_bld(bld, owner):
-    owner.buildings.append(bld)
+    if not owner.cur_action_points:
+        return
+    else:
+        owner.cur_action_points -= 1
+
+    owner.add_building(bld)
     tyle = bld.world.map[bld.x][bld.y]
     tyle.building = bld
     bld.draw()

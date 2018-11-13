@@ -8,6 +8,7 @@ import atributes
 import textures
 import event as ev
 import player
+import log_window
 
 
 STANDART_LANDSHAFTS = ['.', '~', '^', 'T']
@@ -25,6 +26,9 @@ class GameEngine():
         self.current_player = None
         self.current_player_index = 0
 
+    def to_log(self, string):
+        self.log.write(string)
+
     def CreateWorld(self,
                   width, height,
                   tyle_type=game_world.GameWorldTyle,
@@ -40,6 +44,9 @@ class GameEngine():
                                       textures)
         self.world.landshafts = landshafts
 
+        self.log = log_window.LogWindow(self.world, 40, 20)
+        self.log.activate()
+
     def GenerateWorld(self,
                       lands_to_generate=100, 
                       defined_land_square = 0,
@@ -54,6 +61,8 @@ class GameEngine():
 
     def StartWorld(self):
         self.world.update()
+        self.to_log('Epoch of epicness begins!')
+        self.to_log('Lord {}, your turn.'.format(self.current_player))
         self.world.root_window.mainloop()
 
     def SaveWorld(self, file_name):
@@ -73,10 +82,11 @@ class GameEngine():
             self.current_player = self.players[0]
 
     def end_turn(self, *trash):
+        self.to_log("End of {}'s turn".format(self.current_player))
         self.current_player.update(end_of_turn=True)
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
         self.current_player = self.players[self.current_player_index]
-        print('End of Turn. Now player is:', self.current_player.name)
+        self.to_log("Lord {}, your turn.".format(self.current_player))
 
     def cancel_selection(self):
         creature = self.cur_creature_selected
@@ -123,8 +133,8 @@ class GameEngine():
                 #testing buildings
                 atrs1 = atributes.Atributes(10, 5, 5, 0, 0, 4, 4)
                 atrs2 = atributes.Atributes(15, 7, 6, 0, 0, 2, 6)
-                cr1 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'Rider', '@', atrs1, self.current_player_index, self.current_player, textures.horseman, self.current_player.flag)
-                cr2 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'Knight', '@', atrs2, self.current_player_index, self.current_player, textures.footman, self.current_player.flag)
+                cr1 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_CREATURE, 'Rider', '@', atrs1, self.current_player_index, self.current_player, textures.horseman, self.current_player.flag)
+                cr2 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_CREATURE, 'Knight', '@', atrs2, self.current_player_index, self.current_player, textures.footman, self.current_player.flag)
                 crs = [cr1, cr2]
                 bld = unit.Building(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'cr', '@', atrs1, self.current_player_index, self.current_player, textures.castle, self.current_player.flag,
                                     produced_units=crs, spawn_points=10)

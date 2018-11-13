@@ -26,7 +26,6 @@ class InfoWindow(object):
         self.active = False
 
     def die(self, event):
-        time.sleep(1)
         self.deactivate()
 
     def activate(self):

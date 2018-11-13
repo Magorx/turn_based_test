@@ -28,7 +28,7 @@ STANDART_TEXTURE_PACK = {
     'chosen_corner' : textures.chosen_corner,
     'error' : textures.error}
 
-SIDE_PX = 50
+SIDE_PX = 64
 ERROR = -1
 ERROR_TEXTURE_NOT_EXIST = -2
 
@@ -173,8 +173,16 @@ class TkWorld(world.World):
 
         if window is None:
             window = root
-        window.config(width=self.width * SIDE_PX,
-                      height=self.height * SIDE_PX)
+
+        window.title('AAERN')
+        self.screen_width = root.winfo_screenwidth()
+        self.screen_height = root.winfo_screenheight()
+        self.window_width = self.width * SIDE_PX
+        self.window_height = self.height * SIDE_PX
+        self.window_standard_x = (self.screen_width - self.window_width) // 2
+        self.window_standard_y = (self.screen_height - self.window_height) // 2
+        window.geometry('{}x{}+{}+{}'.format(self.window_width, self.window_height, 
+                                             self.window_standard_x, self.window_standard_y))
         window.protocol("WM_DELETE_WINDOW", exit)
 
         if textures is None:

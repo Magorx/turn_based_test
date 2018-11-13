@@ -14,13 +14,14 @@ def load_texture_by_name(name):
 
 
 road =  load_texture_by_name('road')
-water =  load_texture_by_name('water')
+water =  load_texture_by_name('water (1)')
 mountain =  load_texture_by_name('mountain')
 tree =  load_texture_by_name('tree')
 
 footman =  load_texture_by_name('footman')
 horseman =  load_texture_by_name('horseman')
 
+building_plan = load_texture_by_name('building_plan')
 castle =  load_texture_by_name('castle')
 
 transparent =  load_texture_by_name('transparent')
