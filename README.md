@@ -1,0 +1,1 @@
+This game is made just for testing some ideas right on place. On some points it even worked!

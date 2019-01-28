@@ -83,7 +83,8 @@ class GameEngine():
 
     def end_turn(self, *trash):
         self.to_log("End of {}'s turn".format(self.current_player))
-        self.current_player.update(end_of_turn=True)
+        for pl in self.players:
+            pl.update(end_of_turn=True)
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
         self.current_player = self.players[self.current_player_index]
         self.to_log("Lord {}, your turn.".format(self.current_player))
@@ -102,8 +103,12 @@ class GameEngine():
             landshaft.cancel_selection()
             self.cur_landshaft_selected = None
 
+    def update_players(self):
+        for player in self.players:
+            player.update()
 
     def click_handler(self, event):
+        self.update_players()
         if event.type == ev.TYLE_CLICKED:
             tyle = event.tyle
             if tyle.coating_func:
@@ -131,8 +136,8 @@ class GameEngine():
                 # unit.spawn_cr(cr, self.current_player)
 
                 #testing buildings
-                atrs1 = atributes.Atributes(10, 5, 5, 0, 0, 4, 4)
-                atrs2 = atributes.Atributes(15, 7, 6, 0, 0, 2, 6)
+                atrs1 = atributes.Atributes(10, 5, 5, 1, 0, 0, 4, 4)
+                atrs2 = atributes.Atributes(15, 7, 6, 2, 0, 0, 2, 6)
                 cr1 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_CREATURE, 'Rider', '@', atrs1, self.current_player_index, self.current_player, textures.horseman, self.current_player.flag)
                 cr2 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_CREATURE, 'Knight', '@', atrs2, self.current_player_index, self.current_player, textures.footman, self.current_player.flag)
                 crs = [cr1, cr2]

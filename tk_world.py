@@ -91,6 +91,10 @@ class TkWorldTyle(world.WorldTyle):
                                                         self.world.side_px//2,
                                                         anchor=tkinter.CENTER, 
                                                         image=texture))
+        if self.creature:
+            self.creature.update_stats()
+        if self.building:
+            self.building.update_stats()
 
     def _texture_name_by_symb(self, symb,
                               symb_texture_dict=STANDART_SYMB_TEXTURE_DICT):
@@ -141,7 +145,7 @@ class TkTyleInfo(object):
     def add_info_text(self, x, y, text, mark='', anchor=tkinter.CENTER,
                       color='black'):
         if not mark:
-            mark = text
+            mark = text + '_{}_{}'.format(x, y)
         if mark in self.infos:
             self.canvas.delete(self.infos[mark])
 
@@ -154,6 +158,10 @@ class TkTyleInfo(object):
         if mark in self.infos:
             self.canvas.delete(self.infos[mark])
         return 0
+
+    def clear(self):
+        for mark in self.infos:
+            self.delete_info(mark)
 
 
 class TkWorld(world.World):

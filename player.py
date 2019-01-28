@@ -32,10 +32,15 @@ class Player():
             self.cur_action_points = self.action_points
 
         self.update_creatures(end_of_turn=end_of_turn)
+        self.update_buildings(end_of_turn=end_of_turn)
 
     def update_creatures(self, end_of_turn=False):
         for cr in self.creatures:
             cr.update(end_of_turn=end_of_turn)
+
+    def update_buildings(self, end_of_turn=False):
+        for bld in self.buildings:
+            bld.update(end_of_turn=end_of_turn)
 
     def __repr__(self):
         return self.name

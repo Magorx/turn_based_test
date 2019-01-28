@@ -1,0 +1,8 @@
+to copy obj u need:
+    call type(self)(params)
+    run through self.__dict__
+    !!! manualy copy your classes !!!
+
+to update tyle:
+    update creature
+    !!! update building !!!

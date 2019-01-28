@@ -31,12 +31,19 @@ class GameWorldTyle(tk_world.TkWorldTyle):
             return False
 
     def get_team(self):
-        if self.creature:
-            return self.creature.team
-        elif self.building:
-            return self.building.team
+        obj = self.get_intaractable()
+        if obj:
+            return obj.team
         else:
             return -1
+    
+    def get_intaractable(self):
+        if self.creature:
+            return self.creature
+        elif self.building:
+            return self.building
+        else:
+            return None
 
 class GameWorld(tk_world.TkWorld):
     def __init__(self,
@@ -70,6 +77,9 @@ class GameWorld(tk_world.TkWorld):
         for x in range(self.width):
             for y in range(self.height):
                 self.map[x][y].update()
+    
+    def to_log(self, string):
+        self.engine.to_log(string)
 
 
 def main():

@@ -5,6 +5,8 @@
 import atributes as atrs
 import info_window
 import textures
+from tk_world import TkTyleInfo, SIDE_PX
+import tkinter as tk
 
 from collections import deque
 import copy
@@ -29,7 +31,7 @@ class Unit():
         self.type = type
         self.name = name
         self.char = char
-        self.atributes = atributes
+        self.atributes = atributes.copy()
         self.team = team
         self.owner = owner
         self.texture = texture
@@ -42,17 +44,24 @@ class Unit():
         self.visible = True
         self.info_window = None
 
+        tyle = world.map[x][y]
+        self.stats_info = TkTyleInfo(tyle, tyle.canvas)
+
         self.last_filling_distance = 0
         self.move_points = self.atributes.speed
+        self.attacked = False
 
     def copy(self):
         unit = type(self)(self.world, self.x, self.y, 
-                    self.type, self.name, self.char, self.atributes,
-                    self.team, self.owner, 
-                    self.texture, self.flag, 
-                    self.move_map)
+                          self.type, self.name, self.char, self.atributes,
+                          self.team, self.owner, 
+                          self.texture, self.flag, 
+                          self.move_map)
+        
         for key in self.__dict__:
             unit.__dict__[key] = self.__dict__[key]
+
+        self.atributes = self.atributes.copy()
 
         return unit
 
@@ -60,17 +69,37 @@ class Unit():
         tyle = self.world.map[self.x][self.y]
         tyle.delete_texture_by_name(self.name + '_texture')
         tyle.delete_texture_by_name(self.name + '_flag')
+        self.stats_info.clear()
 
         if self.type == TYPE_CREATURE:
             tyle.creature = None
+            del self.owner.creatures[self.owner.creatures.index(self)]
         elif self.type == TYPE_BUILDING:
             tyle.building = None
+            del self.owner.buildings[self.owner.buildings.index(self)]
 
         self.close_filling_module(self.last_filling_distance)
 
     def draw(self):
-        self.world.map[self.x][self.y].add_texture(self.texture, self.name + '_texture')
-        self.world.map[self.x][self.y].add_texture(self.flag, self.name + '_flag')
+        tyle = self.world.map[self.x][self.y]
+        
+        tyle.delete_texture_by_name(self.name + '_texture')
+        tyle.delete_texture_by_name(self.name + '_flag')
+
+        tyle.add_texture(self.texture, self.name + '_texture', redraw=False)
+        tyle.add_texture(self.flag, self.name + '_flag', redraw=False)
+
+        tyle.redraw()
+
+    def draw_stats(self):
+        self.stats_info.add_info_text(SIDE_PX, SIDE_PX, str(self.atributes.hp), mark='hp', anchor=tk.SE, color='red')
+        self.stats_info.add_info_text(0, SIDE_PX, str(self.atributes.attack), mark='atk', anchor=tk.SW, color='orange')
+
+    def update_stats(self):
+        tyle = self.world.map[self.x][self.y]
+        self.stats_info.clear()
+        self.stats_info = TkTyleInfo(tyle, tyle.canvas)
+        self.draw_stats()
 
     def fill_zone_bfs(self, distance, 
                       coating_func, coating_value=-1,
@@ -197,17 +226,37 @@ class Unit():
                     tyle.coating_func = None
                     if texture_used:
                         tyle.delete_texture_by_name(str(self) + '_filled')
+    
+    def count_damage(self, defender):
+        damage = self.atributes.attack
+        damage -= defender.atributes.defence
+        damage -= defender.atributes.hardness
+        return damage
+    
+    def prepare_attack(self, *trash):
+        if self.attacked:
+            self.world.to_log(self.name + ' attacked already.')
+            return
+        self.close_filling_module()
+        self.fill_zone_module(self.atributes.attack_range, self.attack,
+                              texture=textures.chosen_corner_red)
+        
+    def attack(self, tyle):
+        obj = tyle.get_intaractable()
+        if not obj:
+            self.world.to_log(self.name + ' swing at the air.')
+        else:
+            obj.atributes.hp -= self.count_damage(obj)
+            if obj.atributes.hp <= 0:
+                obj.delete()
+        self.close_filling_module()
+        self.attacked = True
 
     def cancel_selection(self):
         self.close_filling_module()
         if self.info_window:
             self.info_window.deactivate()
             self.info_window = None
-
-    def update(self, end_of_turn=False):
-        if end_of_turn:
-            self.move_points = self.atributes.speed
-            self.spawn_points
 
     def clicked(self, event):
         pass # make your own
@@ -226,6 +275,7 @@ class Creature(Unit):
             self.y = tyle.y
             tyle.creature = self
             self.move_points = tyle.points_left
+            self.stats_info = TkTyleInfo(tyle, tyle.canvas)
             self.draw()
     
     def clicked(self, event):
@@ -236,10 +286,16 @@ class Creature(Unit):
                 if self.info_window.active:
                     return
 
-            buttons = ['Delete', 'Move', 'End Turn']
-            commands = [self.delete, self.prepare_move, self.owner.world.engine.end_turn]
-            self.info_window = info_window.InfoWindow(buttons, commands, [None for i in range(3)])
-            self.info_window.activate()   
+            buttons = ['Delete', 'Move', 'Attack', 'End Turn']
+            commands = [self.delete, self.prepare_move, self.prepare_attack, self.owner.world.engine.end_turn]
+            self.info_window = info_window.InfoWindow(buttons, commands, [None for i in range(len(commands))])
+            self.info_window.activate()
+    
+    def update(self, end_of_turn=False):
+        if end_of_turn:
+            self.attacked = False
+            self.move_points = self.atributes.speed
+        self.update_stats()
 
 
 class Building(Unit):
@@ -258,24 +314,25 @@ class Building(Unit):
         self.produced_units = produced_units
         self.produced_resourses = produced_resourses
         self.spawn_points = spawn_points
+        self.cur_spawn_points = spawn_points
 
     def prepare_spawn(self, unit_index):
         self.fill_zone_module(1, self.spawn_creature, coating_value=unit_index, 
-                       moveable_only=True, flying=True,
-                       texture=textures.chosen_corner_golden)
+                              moveable_only=True, flying=True,
+                              texture=textures.chosen_corner_golden)
 
     def spawn_creature(self, tyle):
         cr_index = tyle.a_value
         cr = self.produced_units[cr_index].copy()
         self.close_filling_module()
 
-        if cr.atributes.cost > self.spawn_points:
+        if cr.atributes.cost > self.cur_spawn_points:
             return
         else:
             cr.x = tyle.x
             cr.y = tyle.y
             spawn_cr(cr, self.owner)
-            self.spawn_points -= cr.atributes.cost
+            self.cur_spawn_points -= cr.atributes.cost
 
     def clicked(self, event):
         if event.tk_event.num == 1:
@@ -294,6 +351,12 @@ class Building(Unit):
                 args.append(i)
             self.info_window = info_window.InfoWindow(buttons, commands, args)
             self.info_window.activate()
+    
+    def update(self, end_of_turn=False):
+        if end_of_turn:
+            self.attacked = False
+            self.cur_spawn_points = self.spawn_points
+        self.update_stats()
 
 def spawn_creture(world, x, y, name, char, atributes, team, owner, texture, flag):
     unit = Creature(world, x, y, TYPE_CREATURE, name, char, atributes, team, owner, texture, flag, STANDART_MOVE_MAP)
