@@ -92,8 +92,8 @@ class Unit():
         tyle.redraw()
 
     def draw_stats(self):
-        self.stats_info.add_info_text(SIDE_PX, SIDE_PX, str(self.atributes.hp), mark='hp', anchor=tk.SE, color='red')
-        self.stats_info.add_info_text(0, SIDE_PX, str(self.atributes.attack), mark='atk', anchor=tk.SW, color='orange')
+        self.stats_info.add_info_text(SIDE_PX, SIDE_PX, str(self.atributes.hp), mark='hp', anchor=tk.SE, color='#F62D00')
+        self.stats_info.add_info_text(0, SIDE_PX, str(self.atributes.attack), mark='atk', anchor=tk.SW, color='#FF9300')
 
     def update_stats(self):
         tyle = self.world.map[self.x][self.y]
@@ -351,6 +351,10 @@ class Building(Unit):
                 args.append(i)
             self.info_window = info_window.InfoWindow(buttons, commands, args)
             self.info_window.activate()
+
+    def draw_stats(self):
+        self.stats_info.add_info_text(SIDE_PX, SIDE_PX, str(self.atributes.hp), mark='hp', anchor=tk.SE, color='#F62D00')
+        self.stats_info.add_info_text(0, SIDE_PX, str(self.cur_spawn_points), mark='gold', anchor=tk.SW, color='#FFFF21')
     
     def update(self, end_of_turn=False):
         if end_of_turn:

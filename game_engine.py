@@ -113,6 +113,7 @@ class GameEngine():
             tyle = event.tyle
             if tyle.coating_func:
                 tyle.coating_func(tyle)
+                self.update_players()
                 return
 
             self.cancel_selection()
@@ -169,6 +170,7 @@ class GameEngine():
                 else:
                     self.cur_building_selected = bld
                     bld.clicked(event)
+        self.update_players()
 
 
 def main():
