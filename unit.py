@@ -255,7 +255,8 @@ class Unit():
     def cancel_selection(self):
         self.close_filling_module()
         if self.info_window:
-            self.info_window.deactivate()
+            if self.info_window.active:
+                self.info_window.deactivate()
             self.info_window = None
 
     def clicked(self, event):
@@ -271,6 +272,7 @@ class Creature(Unit):
             return
         else:
             self.delete()
+            self.owner.creatures.append(self)
             self.x = tyle.x
             self.y = tyle.y
             tyle.creature = self
@@ -288,13 +290,14 @@ class Creature(Unit):
 
             buttons = ['Delete', 'Move', 'Attack', 'End Turn']
             commands = [self.delete, self.prepare_move, self.prepare_attack, self.owner.world.engine.end_turn]
-            self.info_window = info_window.InfoWindow(buttons, commands, [None for i in range(len(commands))])
-            self.info_window.activate()
+            self.info_window = info_window.InfoWindow(self.world, buttons, commands, [None for i in range(len(commands))])
+            self.info_window.activate(self.x, self.y)
     
     def update(self, end_of_turn=False):
         if end_of_turn:
             self.attacked = False
             self.move_points = self.atributes.speed
+            print(self.move_points)
         self.update_stats()
 
 
@@ -349,8 +352,8 @@ class Building(Unit):
                 buttons.append('Spawn ' + self.produced_units[i].name)
                 commands.append(self.prepare_spawn)
                 args.append(i)
-            self.info_window = info_window.InfoWindow(buttons, commands, args)
-            self.info_window.activate()
+            self.info_window = info_window.InfoWindow(self.world, buttons, commands, args)
+            self.info_window.activate(self.x, self.y)
 
     def draw_stats(self):
         self.stats_info.add_info_text(SIDE_PX, SIDE_PX, str(self.atributes.hp), mark='hp', anchor=tk.SE, color='#F62D00')

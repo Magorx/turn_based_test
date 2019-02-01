@@ -7,17 +7,19 @@ import time
 
 
 class InfoWindow(object):
-    def __init__(self, choices, commands, args, imgs=[], side_px=50, button_height=2, button_width=10):
+    def __init__(self, world, choices, commands, args, imgs=[], button_height=2, button_width=10):
         if len(choices) != len(commands) or len(choices) < 1:
             raise IndexError
         if imgs and len(imgs) != len(choice):
             raise IndexError
 
-        self.choices = choices
-        self.commands = commands
-        self.args = args
-        self.imgs = imgs
-        self.side_px = side_px
+        self.world = world
+
+        self.choices = ['Cancel'] + choices
+        self.commands = [self.die] + commands
+        self.args = [[]] + args
+        self.imgs = [None] + imgs
+        self.side_px = world.side_px
         self.button_height = button_height
         self.button_width = button_width
         self.window = None
@@ -28,16 +30,19 @@ class InfoWindow(object):
     def die(self, event):
         self.deactivate()
 
-    def activate(self):
+    def activate(self, init_x, init_y):
         if self.window is not None:
             return 0
         self.active = True
 
-        window = tkinter.Toplevel()
+        window = tkinter.Canvas(self.world.root_window)
         side_px = self.side_px
+        window_width = 0
+        window_height = 0
+
         for i in range(len(self.choices)):
             canvas = tkinter.Canvas(window, width=side_px, height=side_px, bg='green')
-            if self.imgs:
+            if len(self.imgs) > 1:
                 canvas.create_image(i * side_px, i * side_px, image=self.imgs[i])
             button = tkinter.Button(canvas, 
                                     text=str(self.choices[i]),
@@ -45,7 +50,20 @@ class InfoWindow(object):
                                     width=self.button_width, height=self.button_height)
             button.pack()
             canvas.pack()
+            window_width = max(window_width, canvas.winfo_reqwidth())
+            window_height += canvas.winfo_reqheight()
         self.window = window
+
+        x = (init_x + 1) * self.world.side_px
+        y = (init_y + 1) * self.world.side_px
+        anchor = tkinter.NW
+
+        if x + window_width > self.world.root_window.winfo_width() or y + window_height > self.world.root_window.winfo_height():
+            x = init_x * self.world.side_px
+            y = init_y * self.world.side_px
+            anchor = tkinter.SE
+
+        self.window.place(x=x, y=y, anchor=anchor)
 
     def deactivate(self, tk_event=None):
         self.active = False
@@ -59,10 +77,7 @@ class InfoWindow(object):
 
 
 def main():
-    world = tk_worlds.TkWorld(15, 15)
-    world.GenerateWorld(lands_to_generate=100, defined_land_square=20)
-    world.full_update(to_set_texture_by_symb=True)
-    world.root_window.mainloop()
+    pass
 
 
 if __name__ == "__main__":

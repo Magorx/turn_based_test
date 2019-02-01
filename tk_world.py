@@ -20,6 +20,7 @@ STANDART_SYMB_TEXTURE_DICT = {'.' : 'grass',
                               '@' : 'unit',
                               'error' : 'error'}
 
+
 STANDART_TEXTURE_PACK = {
     'grass' : textures.grass,
     'water' : textures.water,
@@ -27,6 +28,7 @@ STANDART_TEXTURE_PACK = {
     'tree' : textures.tree,
     'chosen_corner' : textures.chosen_corner,
     'error' : textures.error}
+
 
 SIDE_PX = 64
 ERROR = -1
