@@ -13,17 +13,17 @@ import random
 import time
 
 
-STANDART_SYMB_TEXTURE_DICT = {'.' : 'road',
+STANDART_SYMB_TEXTURE_DICT = {'.' : 'grass',
                               '~' : 'water',
                               'T' : 'tree',
-                              '^' : 'mountain',
+                              '^' : 'mountains',
                               '@' : 'unit',
                               'error' : 'error'}
 
 STANDART_TEXTURE_PACK = {
-    'road' : textures.road,
+    'grass' : textures.grass,
     'water' : textures.water,
-    'mountain' : textures.mountain,
+    'mountains' : textures.mountains,
     'tree' : textures.tree,
     'chosen_corner' : textures.chosen_corner,
     'error' : textures.error}

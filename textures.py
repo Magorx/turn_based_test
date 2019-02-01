@@ -13,12 +13,12 @@ def load_texture_by_name(name):
     return load_texture('./textures/' + name + '.png')
 
 
-road =  load_texture_by_name('road')
-water =  load_texture_by_name('water (1)')
-mountain =  load_texture_by_name('mountain')
+grass =  load_texture_by_name('grass')
+water =  load_texture_by_name('water')
+mountains =  load_texture_by_name('mountains')
 tree =  load_texture_by_name('tree')
 
-footman =  load_texture_by_name('footman')
+swordman =  load_texture_by_name('swordman')
 horseman =  load_texture_by_name('horseman')
 
 building_plan = load_texture_by_name('building_plan')
@@ -36,11 +36,11 @@ chosen_corner_brown =  load_texture_by_name('chosen_corner_brown')
 error = load_texture_by_name('error')
 
 TEXTURES = {
-    'road' : road,
+    'grass' : grass,
     'water' : water,
-    'mountain' : mountain,
+    'mountains' : mountains,
     'tree' : tree,
-    'footman' : footman,
+    'swordman' : swordman,
     'transparent' : transparent,
     'chosen_corner_red' : chosen_corner_red,
     'chosen_corner_blue' : chosen_corner_blue,

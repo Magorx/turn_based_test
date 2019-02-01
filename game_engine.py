@@ -133,14 +133,14 @@ class GameEngine():
             else:
                 #testing unit
                 # atrs = atributes.Atributes(10, 5, 5, 0, 0, 4, 3)
-                # cr = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'cr', '@', atrs, self.current_player_index, self.current_player, textures.footman, self.current_player.flag)
+                # cr = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'cr', '@', atrs, self.current_player_index, self.current_player, textures.swordman, self.current_player.flag)
                 # unit.spawn_cr(cr, self.current_player)
 
                 #testing buildings
                 atrs1 = atributes.Atributes(10, 5, 5, 1, 0, 0, 4, 4)
                 atrs2 = atributes.Atributes(15, 7, 6, 2, 0, 0, 2, 6)
                 cr1 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_CREATURE, 'Rider', '@', atrs1, self.current_player_index, self.current_player, textures.horseman, self.current_player.flag)
-                cr2 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_CREATURE, 'Knight', '@', atrs2, self.current_player_index, self.current_player, textures.footman, self.current_player.flag)
+                cr2 = unit.Creature(self.world, tyle.x, tyle.y, unit.TYPE_CREATURE, 'Knight', '@', atrs2, self.current_player_index, self.current_player, textures.swordman, self.current_player.flag)
                 crs = [cr1, cr2]
                 bld = unit.Building(self.world, tyle.x, tyle.y, unit.TYPE_BUILDING, 'cr', '@', atrs1, self.current_player_index, self.current_player, textures.castle, self.current_player.flag,
                                     produced_units=crs, spawn_points=10)
