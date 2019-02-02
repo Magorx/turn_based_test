@@ -6,9 +6,13 @@ import random
 import time
 
 
+def do_nothing():
+    pass
+
+
 class LogWindow(object):
-    def __init__(self, world, width, height, font=('Comic Sans MS', 12, 'bold')):
-        self.world = world
+    def __init__(self, engine, width, height, font=('Comic Sans MS', 12, 'bold')):
+        self.engine = engine
         self.width = width
         self.height = height
         self.font = font
@@ -21,7 +25,7 @@ class LogWindow(object):
 
     def activate(self):
         if self.window is not None:
-            return 0
+            return
         self.active = True
 
         window = tkinter.Toplevel()
@@ -29,9 +33,17 @@ class LogWindow(object):
         self.text = tkinter.Text(window, width=self.width, height=self.height,
                                  wrap=tkinter.WORD,
                                  font=self.font)
+        window.protocol("WM_DELETE_WINDOW", do_nothing)
         self.text.pack()
-        self.x = max(self.world.window_standard_x - 420, 0)
-        self.y = self.world.window_standard_y
+        self.x = max(self.engine.world.window_standard_x - window.winfo_reqwidth()*2 - 7, 0) # some magic numbers, TODO
+        self.y = self.engine.world.window_standard_y
+
+        status_bar = tkinter.Canvas(window, width=window.winfo_reqwidth()*2 + 2, height=self.engine.world.side_px, bg='green') # idk why width is so wierd, TODO
+        button_end_turn = tkinter.Button(status_bar, width=self.engine.world.side_px, height=self.engine.world.side_px, text='End Turn', command=self.engine.end_turn)
+        print(self.engine.world.side_px)
+        button_end_turn.pack()
+        status_bar.pack()
+
         window.geometry('+{}+{}'.format(self.x, self.y))
         self.window = window
 

@@ -27,6 +27,12 @@ class InfoWindow(object):
 
         self.active = False
 
+    def check_xy(self, x, y):
+        if x < 0 or y < 0 or x > self.world.root_window.winfo_width() or y > self.world.root_window.winfo_height():
+            return False
+        else:
+            return True
+
     def die(self, event):
         self.deactivate()
 
@@ -41,7 +47,7 @@ class InfoWindow(object):
         window_height = 0
 
         for i in range(len(self.choices)):
-            canvas = tkinter.Canvas(window, width=side_px, height=side_px, bg='green')
+            canvas = tkinter.Canvas(window, width=side_px, height=side_px)
             if len(self.imgs) > 1:
                 canvas.create_image(i * side_px, i * side_px, image=self.imgs[i])
             button = tkinter.Button(canvas, 
@@ -57,11 +63,20 @@ class InfoWindow(object):
         x = (init_x + 1) * self.world.side_px
         y = (init_y + 1) * self.world.side_px
         anchor = tkinter.NW
+        print(1)
 
-        if x + window_width > self.world.root_window.winfo_width() or y + window_height > self.world.root_window.winfo_height():
+        if not self.check_xy(x + window_width, y + window_height):
             x = init_x * self.world.side_px
             y = init_y * self.world.side_px
             anchor = tkinter.SE
+            if not self.check_xy(x - window_width, y - window_height):
+                x = init_x * self.world.side_px
+                y = (init_y + 1) * self.world.side_px
+                anchor = tkinter.NE
+                if not self.check_xy(x - window_width, y + window_height):
+                    x = (init_x + 1) * self.world.side_px
+                    y = init_y * self.world.side_px
+                    anchor = tkinter.SW
 
         self.window.place(x=x, y=y, anchor=anchor)
 

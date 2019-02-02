@@ -44,7 +44,7 @@ class GameEngine():
                                       textures)
         self.world.landshafts = landshafts
 
-        self.log = log_window.LogWindow(self.world, 40, 20)
+        self.log = log_window.LogWindow(self, 40, 20)
         self.log.activate()
 
     def GenerateWorld(self,
