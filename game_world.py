@@ -8,7 +8,9 @@ import info_window
 import unit
 import event
 
+
 LANDSHAFT_PASSABILITY = {'!' : 0, '.' : 1, 'T' : 2, '^' : 3, '~' : -1}
+
 
 class GameWorldTyle(tk_world.TkWorldTyle):
     def __init__(self, world, canvas, x=0, y=0, symb='.'):

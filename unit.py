@@ -365,6 +365,16 @@ class Building(Unit):
             self.cur_spawn_points = self.spawn_points
         self.update_stats()
 
+
+class UnitLoader:
+    def __init__(self):
+        pass
+
+    def load(self, unit_name):
+        file = open(unit_filename + '.unit', 'r')
+
+
+
 def spawn_creture(world, x, y, name, char, atributes, team, owner, texture, flag):
     unit = Creature(world, x, y, TYPE_CREATURE, name, char, atributes, team, owner, texture, flag, STANDART_MOVE_MAP)
     owner.creatures.append(unit)

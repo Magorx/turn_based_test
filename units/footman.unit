@@ -1,0 +1,13 @@
+footman
+texture_path=swordman.png
+type=creature
+name=footman
+char=f
+hp=7
+mp=1
+attack=3
+attack_range=1
+defence=0
+hardness=0
+speed=2
+cost=4

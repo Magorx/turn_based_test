@@ -39,8 +39,7 @@ class LogWindow(object):
         self.y = self.engine.world.window_standard_y
 
         status_bar = tkinter.Canvas(window, width=window.winfo_reqwidth()*2 + 2, height=self.engine.world.side_px, bg='green') # idk why width is so wierd, TODO
-        button_end_turn = tkinter.Button(status_bar, width=self.engine.world.side_px, height=self.engine.world.side_px, text='End Turn', command=self.engine.end_turn)
-        print(self.engine.world.side_px)
+        button_end_turn = tkinter.Button(status_bar, text='End Turn', command=self.engine.end_turn)
         button_end_turn.pack()
         status_bar.pack()
 

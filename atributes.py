@@ -4,7 +4,7 @@
 '''
 hp - hp
 mp - mp
-These atrs made sence to me one day
+These atrs were making sence to me one day
 Attack - clear damage output, without any buffs
 Defence - clear damage reduction, without any buffs
 Hardness - damage cutting after using all bonuses
@@ -16,7 +16,7 @@ class Atributes():
     def __init__(self, hp, mp, attack, attack_range, defence, hardness, speed, cost):
         self.hp = hp
         self.mp = mp
-        self. attack = attack
+        self.attack = attack
         self.attack_range = attack_range
         self.defence = defence
         self.hardness = hardness
